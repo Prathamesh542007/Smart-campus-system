@@ -1,0 +1,262 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard - Smart Campus Complaint System{% endblock %}
+{% block page_heading %}Campus Administration{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-0">
+
+  <!-- Header Banner -->
+  <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+    <div>
+      <h3 class="fw-bold mb-1">Campus Complaint Overview 🏢</h3>
+      <p class="text-muted mb-0">Monitor, assign, and resolve student complaints across campus facilities</p>
+    </div>
+    <div>
+      <a href="{{ url_for('admin_dashboard') }}" class="btn btn-outline-primary btn-sm rounded-pill px-3 shadow-sm">
+        <i class="bi bi-arrow-clockwise me-1"></i> Refresh Dashboard
+      </a>
+    </div>
+  </div>
+
+  <!-- Real Statistics Cards from SQLite Database -->
+  <div class="row g-3 mb-4">
+    <!-- Total -->
+    <div class="col-6 col-md-4 col-xl-2">
+      <a href="{{ url_for('admin_dashboard', status='All') }}" class="text-decoration-none">
+        <div class="stat-card stat-primary">
+          <div class="stat-info">
+            <h3>{{ total_complaints }}</h3>
+            <p>Total</p>
+          </div>
+          <div class="stat-icon" style="width: 42px; height: 42px; font-size: 1.2rem;">
+            <i class="bi bi-collection-fill"></i>
+          </div>
+        </div>
+      </a>
+    </div>
+
+    <!-- Pending -->
+    <div class="col-6 col-md-4 col-xl-2">
+      <a href="{{ url_for('admin_dashboard', status='Pending') }}" class="text-decoration-none">
+        <div class="stat-card stat-warning">
+          <div class="stat-info">
+            <h3>{{ pending_count }}</h3>
+            <p>Pending</p>
+          </div>
+          <div class="stat-icon" style="width: 42px; height: 42px; font-size: 1.2rem;">
+            <i class="bi bi-hourglass-split"></i>
+          </div>
+        </div>
+      </a>
+    </div>
+
+    <!-- Assigned -->
+    <div class="col-6 col-md-4 col-xl-2">
+      <a href="{{ url_for('admin_dashboard', status='Assigned') }}" class="text-decoration-none">
+        <div class="stat-card stat-info-theme">
+          <div class="stat-info">
+            <h3>{{ assigned_count }}</h3>
+            <p>Assigned</p>
+          </div>
+          <div class="stat-icon" style="width: 42px; height: 42px; font-size: 1.2rem;">
+            <i class="bi bi-person-check-fill"></i>
+          </div>
+        </div>
+      </a>
+    </div>
+
+    <!-- In Progress -->
+    <div class="col-6 col-md-4 col-xl-2">
+      <a href="{{ url_for('admin_dashboard', status='In Progress') }}" class="text-decoration-none">
+        <div class="stat-card stat-purple">
+          <div class="stat-info">
+            <h3>{{ in_progress_count }}</h3>
+            <p>In Progress</p>
+          </div>
+          <div class="stat-icon" style="width: 42px; height: 42px; font-size: 1.2rem;">
+            <i class="bi bi-tools"></i>
+          </div>
+        </div>
+      </a>
+    </div>
+
+    <!-- Resolved -->
+    <div class="col-6 col-md-4 col-xl-2">
+      <a href="{{ url_for('admin_dashboard', status='Resolved') }}" class="text-decoration-none">
+        <div class="stat-card stat-success">
+          <div class="stat-info">
+            <h3>{{ resolved_count }}</h3>
+            <p>Resolved</p>
+          </div>
+          <div class="stat-icon" style="width: 42px; height: 42px; font-size: 1.2rem;">
+            <i class="bi bi-check-circle-fill"></i>
+          </div>
+        </div>
+      </a>
+    </div>
+
+    <!-- Rejected -->
+    <div class="col-6 col-md-4 col-xl-2">
+      <a href="{{ url_for('admin_dashboard', status='Rejected') }}" class="text-decoration-none">
+        <div class="stat-card stat-danger">
+          <div class="stat-info">
+            <h3>{{ rejected_count }}</h3>
+            <p>Rejected</p>
+          </div>
+          <div class="stat-icon" style="width: 42px; height: 42px; font-size: 1.2rem;">
+            <i class="bi bi-x-circle-fill"></i>
+          </div>
+        </div>
+      </a>
+    </div>
+  </div>
+
+  <!-- Filters & Search Form -->
+  <div class="custom-card mb-4">
+    <div class="p-3">
+      <form method="GET" action="{{ url_for('admin_dashboard') }}" class="row g-2 align-items-center">
+        <!-- Search Box -->
+        <div class="col-12 col-md-4">
+          <div class="input-group">
+            <span class="input-group-text bg-light border-end-0"><i class="bi bi-search text-muted"></i></span>
+            <input 
+              type="text" 
+              name="q" 
+              class="form-control border-start-0" 
+              placeholder="Search code, student, location, title..." 
+              value="{{ search_query }}"
+            >
+          </div>
+        </div>
+
+        <!-- Status Filter -->
+        <div class="col-6 col-md-3">
+          <select name="status" class="form-select" onchange="this.form.submit()">
+            <option value="All" {% if selected_status == 'All' %}selected{% endif %}>All Statuses</option>
+            {% for st in status_list %}
+              <option value="{{ st }}" {% if selected_status == st %}selected{% endif %}>{{ st }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <!-- Category Filter -->
+        <div class="col-6 col-md-3">
+          <select name="category" class="form-select" onchange="this.form.submit()">
+            <option value="All" {% if selected_category == 'All' %}selected{% endif %}>All Categories</option>
+            {% for cat in categories %}
+              <option value="{{ cat }}" {% if selected_category == cat %}selected{% endif %}>{{ cat }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <!-- Submit & Reset Buttons -->
+        <div class="col-12 col-md-2 d-flex gap-2">
+          <button type="submit" class="btn btn-primary flex-fill">
+            Filter
+          </button>
+          {% if search_query or selected_status != 'All' or selected_category != 'All' %}
+            <a href="{{ url_for('admin_dashboard') }}" class="btn btn-outline-secondary" title="Reset Filters">
+              <i class="bi bi-x-lg"></i>
+            </a>
+          {% endif %}
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Complaints Table Card -->
+  <div class="custom-card">
+    <div class="card-header-clean">
+      <div>
+        <h5 class="mb-0 fw-bold">All Campus Complaints</h5>
+        <small class="text-muted">Showing {{ complaints | length }} complaint record(s)</small>
+      </div>
+
+      {% if complaints %}
+      <div class="d-flex align-items-center gap-2">
+        <div class="input-group input-group-sm" style="max-width: 220px;">
+          <span class="input-group-text bg-white border-end-0"><i class="bi bi-funnel text-muted"></i></span>
+          <input 
+            type="text" 
+            class="form-control border-start-0" 
+            id="clientTableSearch" 
+            placeholder="Filter list..."
+          >
+        </div>
+      </div>
+      {% endif %}
+    </div>
+
+    <div class="table-responsive">
+      <table class="table table-custom table-hover align-middle mb-0" id="complaintsTable">
+        <thead>
+          <tr>
+            <th>Complaint Code</th>
+            <th>Student</th>
+            <th>Category</th>
+            <th>Title & Location</th>
+            <th>Status</th>
+            <th>Date</th>
+            <th class="text-end">Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for cmp in complaints %}
+            <tr>
+              <td>
+                <span class="fw-bold text-primary font-monospace">{{ cmp.complaint_code }}</span>
+              </td>
+              <td>
+                <div>
+                  <span class="fw-bold text-dark d-block">{{ cmp.student_name }}</span>
+                  <small class="text-muted">{{ cmp.student_email }}</small>
+                </div>
+              </td>
+              <td>
+                <span class="badge bg-light text-dark border">{{ cmp.category }}</span>
+              </td>
+              <td>
+                <span class="fw-semibold text-dark d-block">{{ cmp.title }}</span>
+                <small class="text-muted"><i class="bi bi-geo-alt me-1"></i>{{ cmp.location }}</small>
+              </td>
+              <td>
+                <span class="status-badge status-{{ cmp.status | replace(' ', '-') }}">
+                  <span class="dot"></span>
+                  {{ cmp.status }}
+                </span>
+              </td>
+              <td>
+                <span class="text-muted small">{{ cmp.created_at | format_datetime }}</span>
+              </td>
+              <td class="text-end">
+                <a href="{{ url_for('admin_complaint_details', complaint_id=cmp.id) }}" class="btn btn-sm btn-primary rounded-pill px-3 shadow-sm">
+                  <i class="bi bi-pencil-square me-1"></i> Review
+                </a>
+              </td>
+            </tr>
+          {% else %}
+            <tr>
+              <td colspan="7">
+                <div class="empty-state">
+                  <div class="empty-state-icon">
+                    <i class="bi bi-check-all"></i>
+                  </div>
+                  <h5>No complaints found.</h5>
+                  <p>There are currently no complaints matching your selected criteria.</p>
+                  {% if search_query or selected_status != 'All' or selected_category != 'All' %}
+                    <a href="{{ url_for('admin_dashboard') }}" class="btn btn-outline-primary btn-sm">
+                      Clear Filters
+                    </a>
+                  {% endif %}
+                </div>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

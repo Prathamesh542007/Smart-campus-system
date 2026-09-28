@@ -1,0 +1,187 @@
+{% extends "base.html" %}
+
+{% block title %}Manage {{ complaint.complaint_code }} - Smart Campus Complaint System{% endblock %}
+{% block page_heading %}Manage Complaint{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-0">
+
+  <!-- Action Header -->
+  <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+    <div>
+      <div class="d-flex align-items-center gap-2 mb-1">
+        <span class="fs-4 fw-bold font-monospace text-primary">{{ complaint.complaint_code }}</span>
+        <span class="status-badge status-{{ complaint.status | replace(' ', '-') }}">
+          <span class="dot"></span>
+          {{ complaint.status }}
+        </span>
+      </div>
+      <h4 class="fw-bold mb-0 text-dark">{{ complaint.title }}</h4>
+    </div>
+    <div>
+      <a href="{{ url_for('admin_dashboard') }}" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left me-1"></i> Back to All Complaints
+      </a>
+    </div>
+  </div>
+
+  <div class="row g-4">
+    <!-- Left Column: Complaint Details & Student Info -->
+    <div class="col-12 col-lg-7">
+      
+      <!-- Student Info Card -->
+      <div class="custom-card mb-4">
+        <div class="card-header-clean">
+          <h6 class="mb-0 fw-bold"><i class="bi bi-person-badge-fill text-primary me-2"></i>Student Information</h6>
+        </div>
+        <div class="p-4">
+          <div class="row g-3">
+            <div class="col-sm-6">
+              <span class="text-muted small d-block">Student Name</span>
+              <span class="fw-bold text-dark fs-6">{{ complaint.student_name }}</span>
+            </div>
+            <div class="col-sm-6">
+              <span class="text-muted small d-block">Email Address</span>
+              <span class="fw-semibold text-dark fs-6">{{ complaint.student_email }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Complaint Info Card -->
+      <div class="custom-card mb-4">
+        <div class="card-header-clean">
+          <h6 class="mb-0 fw-bold"><i class="bi bi-file-text-fill text-primary me-2"></i>Complaint Specifics</h6>
+        </div>
+        <div class="p-4">
+          <div class="row g-3">
+            <div class="col-sm-6">
+              <span class="text-muted small d-block">Category</span>
+              <span class="badge bg-light text-dark border fs-6 px-3 py-1">{{ complaint.category }}</span>
+            </div>
+            <div class="col-sm-6">
+              <span class="text-muted small d-block">Campus Location</span>
+              <span class="fw-bold text-dark fs-6"><i class="bi bi-geo-alt-fill text-danger me-1"></i>{{ complaint.location }}</span>
+            </div>
+            <div class="col-sm-6">
+              <span class="text-muted small d-block">Reported At</span>
+              <span class="fw-semibold text-dark">{{ complaint.created_at | format_datetime }}</span>
+            </div>
+            <div class="col-sm-6">
+              <span class="text-muted small d-block">Last Updated</span>
+              <span class="fw-semibold text-dark">{{ (complaint.updated_at or complaint.created_at) | format_datetime }}</span>
+            </div>
+            <div class="col-12 pt-2">
+              <span class="text-muted small d-block mb-1">Detailed Description</span>
+              <div class="p-3 bg-light rounded-3 text-secondary" style="white-space: pre-line; line-height: 1.6;">
+                {{ complaint.description }}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Photo Evidence Card -->
+      <div class="custom-card">
+        <div class="card-header-clean">
+          <h6 class="mb-0 fw-bold"><i class="bi bi-image-fill text-primary me-2"></i>Photo Evidence</h6>
+        </div>
+        <div class="p-4 text-center">
+          {% if complaint.image_filename %}
+            <div class="border rounded-3 p-2 bg-light shadow-sm">
+              <img 
+                src="{{ url_for('static', filename='uploads/' + complaint.image_filename) }}" 
+                alt="Complaint Evidence" 
+                class="img-fluid rounded-2"
+                style="max-height: 350px; width: 100%; object-fit: contain; cursor: pointer;"
+                data-bs-toggle="modal"
+                data-bs-target="#imageModal"
+              >
+              <div class="mt-2 text-center">
+                <small class="text-muted"><i class="bi bi-zoom-in me-1"></i>Click image to expand full-size</small>
+              </div>
+            </div>
+
+            <!-- Modal for Enlarged Photo -->
+            <div class="modal fade" id="imageModal" tabindex="-1" aria-labelledby="imageModalLabel" aria-hidden="true">
+              <div class="modal-dialog modal-dialog-centered modal-lg">
+                <div class="modal-content">
+                  <div class="modal-header">
+                    <h6 class="modal-title fw-bold" id="imageModalLabel">Evidence: {{ complaint.complaint_code }}</h6>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                  </div>
+                  <div class="modal-body p-0 text-center bg-dark">
+                    <img 
+                      src="{{ url_for('static', filename='uploads/' + complaint.image_filename) }}" 
+                      alt="Full Evidence" 
+                      class="img-fluid"
+                      style="max-height: 80vh;"
+                    >
+                  </div>
+                </div>
+              </div>
+            </div>
+          {% else %}
+            <div class="p-4 bg-light rounded-3 text-muted">
+              <i class="bi bi-image text-secondary fs-2 d-block mb-1"></i>
+              <span class="small fw-medium">No photo uploaded by student.</span>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Right Column: Admin Status & Remark Update Form -->
+    <div class="col-12 col-lg-5">
+      <div class="custom-card sticky-top" style="top: 85px;">
+        <div class="card-header-clean bg-light">
+          <div>
+            <h6 class="mb-0 fw-bold"><i class="bi bi-sliders text-primary me-2"></i>Status & Action Control</h6>
+            <small class="text-muted">Update resolution progress and provide feedback</small>
+          </div>
+        </div>
+        <div class="p-4">
+          <form method="POST" action="{{ url_for('update_complaint_status', complaint_id=complaint.id) }}">
+            
+            <!-- Current Status -->
+            <div class="mb-3">
+              <label for="status" class="form-label">Update Status <span class="text-danger">*</span></label>
+              <select class="form-select form-select-lg fw-bold" id="status" name="status" required>
+                {% for st in status_list %}
+                  <option value="{{ st }}" {% if complaint.status == st %}selected{% endif %}>
+                    {{ st }}
+                  </option>
+                {% endfor %}
+              </select>
+              <div class="form-text small text-muted">
+                Assign staff, move into progress, or mark resolved when completed.
+              </div>
+            </div>
+
+            <!-- Admin Remark -->
+            <div class="mb-4">
+              <label for="admin_remark" class="form-label">Admin Remark / Action Note</label>
+              <textarea 
+                class="form-control" 
+                id="admin_remark" 
+                name="admin_remark" 
+                rows="5" 
+                placeholder="Enter instructions for maintenance team, resolution remarks, or reasons for rejection..."
+              >{{ complaint.admin_remark if complaint.admin_remark else '' }}</textarea>
+              <div class="form-text small text-muted">
+                This message is visible to the student on their complaint tracking page.
+              </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary w-100 py-2 fw-bold shadow-sm">
+              <i class="bi bi-save2-fill me-1"></i> Save Changes & Update Status
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+{% endblock %}
